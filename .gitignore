@@ -6,4 +6,4 @@ model/
 plot/
 scripts/
 .ipynb_checkpoints/
-__pycache__
+__pycache__/
