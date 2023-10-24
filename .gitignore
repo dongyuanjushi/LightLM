@@ -5,3 +5,5 @@ log/
 model/
 plot/
 scripts/
+.ipynb_checkpoints/
+__pycache__
