@@ -1,0 +1,8 @@
+transformers==4.26.0
+torch==1.8.1
+scikit-learn
+torchvision==0.9.1
+tqdm
+argparse
+numpy==1.23.1
+networkx
