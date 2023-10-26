@@ -21,7 +21,7 @@ CUDA_VISIBLE_DEVICES=0 python \
     --lr 1e-3 \
     --clip 1.0 \
     --model_type 't5-small' \
-    --epochs 8 \
+    --epochs 10 \
     --gpu '0' \
     --data_dir data \
     --logging_step 100 \
@@ -54,7 +54,7 @@ CUDA_VISIBLE_DEVICES=0 python \
     --lr 1e-3 \
     --clip 1.0 \
     --model_type 't5-small' \
-    --epochs 20 \
+    --epochs 10 \
     --gpu '0' \
     --data_dir data/ \
     --logging_step 100 \
