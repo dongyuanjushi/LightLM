@@ -1,7 +1,7 @@
 from sklearn.cluster import SpectralClustering
 import argparse
 from transformers import AutoTokenizer,T5Config, T5ForConditionalGeneration
-from data import load_train_dataloaders, load_eval_dataloaders, load_data
+from utils.data import load_train_dataloaders, load_eval_dataloaders, load_data
 import copy
 from tqdm import tqdm
 from utils.utils import (
@@ -12,10 +12,10 @@ from utils.utils import (
     prefix_allowed_tokens_fn,
     load_model,
     random_initialization,
-    create_category_embedding,
-    create_category_embedding_yelp,
-    content_category_embedding_modified_yelp,
-    content_based_representation_non_hierarchical,
+    # create_category_embedding,
+    # create_category_embedding_yelp,
+    # content_category_embedding_modified_yelp,
+    # content_based_representation_non_hierarchical,
 )
 from indexing.rep_method import (
     create_CF_embedding,
@@ -36,7 +36,7 @@ import transformers
 import torch.backends.cudnn as cudnn
 import torch.multiprocessing as mp
 import time
-from generation_trie import Trie
+from utils.generation_trie import Trie
 import os
 from collections import OrderedDict
 
@@ -156,23 +156,23 @@ def trainer(
     logger,
 ):
 
-    if rank == 0:
-        logger.log("loading model ...")
+    # if rank == 0:
+    #     logger.log("loading model ...")
         # logger.log("using only sequential data, and all possible sequences are here")
     # use default T5 config
     config = T5Config.from_pretrained(
         args.model_type,
-        cache_dir="/common/users/zl502/huggingface/cache"
+        # cache_dir="/common/users/zl502/huggingface/cache"
     )
     
     config.dropout_rate = args.dropout
     if args.no_pretrain:
         if rank == 0:
-            logger.log("do not use pretrained T5")
+            logger.log("do not use pretrained weights")
         model = P5(config=config)
     else:
         if rank == 0:
-            logger.log("use pretrained T5")
+            logger.log("use pretrained weights")
         
         # model = P5.from_pretrained(
         #     pretrained_model_name_or_path=args.model_type,
@@ -183,7 +183,7 @@ def trainer(
         t5_model = P5.from_pretrained(
             pretrained_model_name_or_path='t5-small',
             config=config,
-            cache_dir="/common/users/zl502/huggingface/cache"
+            # cache_dir="/common/users/zl502/huggingface/cache"
             # **model_args,  # , args=args
         )  # .to(args.gpu)
         # print(t5_model)
@@ -203,13 +203,13 @@ def trainer(
             model.load_state_dict(reduced_state_dict, strict=False)
         
         # for k in model.state_dict().items
-        print("Reduced model parameter numbers: {}".format(model.num_parameters()))
+        # print("Reduced model parameter numbers: {}".format(model.num_parameters()))
         # print(model)
         
     if not args.eval_only:
         if args.random_initialization_embedding and not args.load_checkpoint:
-            if rank == 0:
-                logger.log("randomly initialize number-related embeddings only")
+            # if rank == 0:
+            #     logger.log("randomly initialize number-related embeddings only")
             model = random_initialization(model, tokenizer)
 
     model.resize_token_embeddings(len(tokenizer))
@@ -223,13 +223,13 @@ def trainer(
         dist.barrier()
 
     if args.multiGPU:
-        if rank == 0:
-            logger.log("model dataparallel set")
+        # if rank == 0:
+        #     logger.log("model dataparallel set")
         if args.distributed:
             model = DDP(model, device_ids=[args.gpu], find_unused_parameters=True)
 
     if rank == 0:
-        logger.log("start training")
+        logger.log("Start Training.")
     model.zero_grad()
     logging_step = 0
     logging_loss = 0
@@ -241,7 +241,7 @@ def trainer(
     start_epoch = 0
         
     if args.load_checkpoint:
-        print("Load model weights from checkpoint.")
+        print("load model weights from checkpoint.")
         state = torch.load(args.model_dir + "_latest.pt")
         model.load_state_dict(state['model_state_dict'])
         optimizer.load_state_dict(state['optimizer_state_dict'])
@@ -310,11 +310,11 @@ def trainer(
                             whole_word_embedding_type=args.whole_word_embedding,
                         )
                 
-                if logging_step % args.logging_step == 0:
-                    print("Input ID: ", tokenizer.convert_ids_to_tokens(input_ids[0]))
-                    logits = output['logits']
-                    print("Ground truth ID: ", tokenizer.convert_ids_to_tokens(output_ids[0]))
-                    print("Prediction ID: ", tokenizer.convert_ids_to_tokens(torch.argmax(logits, dim=-1)[0]))
+                # if logging_step % args.logging_step == 0:
+                #     print("Input ID: ", tokenizer.convert_ids_to_tokens(input_ids[0]))
+                #     logits = output['logits']
+                #     print("Ground truth ID: ", tokenizer.convert_ids_to_tokens(output_ids[0]))
+                #     print("Prediction ID: ", tokenizer.convert_ids_to_tokens(torch.argmax(logits, dim=-1)[0]))
 
                 # compute loss masking padded tokens
                 loss = output["loss"]
@@ -337,7 +337,7 @@ def trainer(
 
                 if logging_step % args.logging_step == 0 and rank == 0:
                     logger.log(
-                        "total loss for {} steps : {}".format(
+                        "Total loss for {} steps : {}".format(
                             logging_step, logging_loss
                         )
                     )
@@ -523,7 +523,7 @@ def main_worker(local_rank, args, logger):
         new_tokens = set(new_tokens) - set(tokenizer.vocab.keys())
         tokenizer.add_tokens(list(new_tokens))
 
-    elif args.item_representation == "CF":
+    elif args.item_representation == "CID":
         if local_rank == 0:
             logger.log(
                 "*** use collaborative_filtering_based representation, extend vocab ***"
@@ -534,7 +534,7 @@ def main_worker(local_rank, args, logger):
         else:
             tokenizer = create_CF_embedding_optimal_width(args, tokenizer, mode="item")
     
-    elif args.item_representation == "graph":
+    elif args.item_representation == "GID":
         if local_rank == 0:
             logger.log(
                 "*** use graph representation, extend vocab ***"
@@ -766,8 +766,15 @@ def parse_argument():
     parser.add_argument(
         "--user_quantized_len",
         type=int,
-        default=16,
+        default=4,
         help="quantization length for user indexing",
+    )
+    
+    parser.add_argument(
+        "--item_quantized_len",
+        type=int,
+        default=4,
+        help="quantization length for item indexing",
     )
     
     parser.add_argument(

@@ -34,6 +34,8 @@ def construct_indices_from_graph(args, mode="item"):
     cluster_number = args.item_cluster_number if mode == "item" else args.user_cluster_number
     cluster_size = args.item_cluster_size if mode == "item" else args.user_cluster_size
     emb_size = args.embedding_length
+    quantized_len = args.user_quantized_len
+    # item_quantized_len = args.item_quantized_len
     base_dir = os.path.join(args.data_dir, args.task, mode + "_graph_indices")
     if args.co_indexing:
         base_dir = os.path.join(args.data_dir, args.task, "co_graph_indices")
@@ -41,13 +43,18 @@ def construct_indices_from_graph(args, mode="item"):
         base_dir = os.path.join(args.data_dir, args.task, "useritem_graph_indices")
         
     if not os.path.isfile(
-           os.path.join(base_dir,  mode + "_computed_deduplicated_{}_{}_{}_graph_index.json".format(
-            cluster_number, cluster_size, emb_size)
+           # os.path.join(base_dir,  mode + "_computed_deduplicated_{}_{}_{}_graph_index.json".format(
+           #  cluster_number, cluster_size, emb_size)
+           os.path.join(base_dir,  mode + "_{}_computed_index.json".format(
+            quantized_len)
         )
     ):
         with open(
-            os.path.join(base_dir, mode + "_deduplicated_{}_{}_{}_graph_index.json".format(
-                cluster_number, cluster_size, emb_size
+            # os.path.join(base_dir, mode + "_deduplicated_{}_{}_{}_graph_index.json".format(
+            #     cluster_number, cluster_size, emb_size
+            # )),
+            os.path.join(base_dir, mode + "_{}_index.json".format(
+                quantized_len
             )),
             "r",
         ) as f:
@@ -58,8 +65,11 @@ def construct_indices_from_graph(args, mode="item"):
         
         with open(
             os.path.join(base_dir, 
-            mode + "_computed_deduplicated_{}_{}_{}_graph_index.json".format(
-                cluster_number, cluster_size, emb_size
+            # mode + "_computed_deduplicated_{}_{}_{}_graph_index.json".format(
+            #     cluster_number, cluster_size, emb_size
+            # )),
+            mode + "_{}_computed_index.json".format(
+                quantized_len
             )),
             "w",
         ) as f:
@@ -67,8 +77,12 @@ def construct_indices_from_graph(args, mode="item"):
     else:
         with open(
             os.path.join(base_dir,
-            mode + "_computed_deduplicated_{}_{}_{}_graph_index.json".format(
-                cluster_number, cluster_size, emb_size
+            # mode + "_computed_deduplicated_{}_{}_{}_graph_index.json".format(
+            #     cluster_number, cluster_size, emb_size
+            # )),
+            mode + "_{}_computed_index.json".format(
+                # cluster_number, cluster_size, emb_size
+                quantized_len
             )),
             "r",
         ) as f:

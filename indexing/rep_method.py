@@ -8,13 +8,13 @@ import numpy as np
 import torch
 import gzip
 from tqdm import tqdm
-from CF_index import (
+from indexing.CF_index import (
     construct_indices_from_cluster,
     within_category_spectral_clustering,
     construct_indices_from_cluster_optimal_width,
 )
 
-from graph_index import (
+from indexing.graph_index import (
     construct_indices_from_graph
 )
 import argparse

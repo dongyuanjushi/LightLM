@@ -3,7 +3,7 @@ import random
 import argparse
 import json
 from torch.utils.data import Dataset, DataLoader
-from prompt import (
+from utils.prompt import (
     task_subgroup_1,
     task_subgroup_2,
     task_subgroup_3,
@@ -16,7 +16,7 @@ import torch
 from transformers import AutoTokenizer
 import math
 from torch.utils.data.distributed import DistributedSampler
-from rep_method import (
+from indexing.rep_method import (
     CF_representation,
     CF_representation_optimal_width,
     create_CF_embedding,
@@ -26,13 +26,13 @@ from rep_method import (
 )
 import time
 import numpy as np
-from utils import create_category_embedding
-from CF_index import (
+# from utils import create_category_embedding
+from indexing.CF_index import (
     construct_indices_from_cluster,
     construct_indices_from_cluster_optimal_width,
 )
 
-from graph_index import (
+from indexing.graph_index import (
     construct_indices_from_graph
 )
 import os
@@ -79,7 +79,7 @@ def load_data(args, tokenizer):
     if args.item_representation == "no_tokenization":
         item_remap_fct = no_tokenization(args)
 
-    elif args.item_representation == "CF":
+    elif args.item_representation == "CID":
         assert args.data_order == "remapped_sequential"
         if not args.optimal_width_in_CF:
             print("--- do not use optimal width in CF ---")
@@ -91,13 +91,13 @@ def load_data(args, tokenizer):
             item_remap_fct = lambda x: CF_representation_optimal_width(x, item_mapping)
         # print("---finish loading CF mapping---")
     
-    elif args.item_representation == "graph":
+    elif args.item_representation == "GID":
         assert args.data_order == "remapped_sequential"
         item_mapping, _ = construct_indices_from_graph(args, mode="item")
         item_remap_fct = lambda x: graph_representation(x, item_mapping, mode="item")
     
     # indexing for user representation
-    if args.user_representation == "CF":
+    if args.user_representation == "CID":
         user_mapping, _ = construct_indices_from_cluster(args, mode="user")
         user_remap_fct = lambda x: CF_representation(x, user_mapping, mode="user")
         
@@ -105,7 +105,7 @@ def load_data(args, tokenizer):
         with open(user2idpath, "r") as f:
             user2id = json.load(f)
     
-    elif args.user_representation == "graph":
+    elif args.user_representation == "GID":
         user_mapping, _ = construct_indices_from_graph(args, mode="user")
         user_remap_fct = lambda x: graph_representation(x, user_mapping, mode="user")
         
@@ -130,9 +130,9 @@ def load_data(args, tokenizer):
             # remapped_items = items
             remapped_items = [str(int(item) + 1000) for item in items]
         if args.user_representation != "None":
-            if args.user_representation == "CF":
+            if args.user_representation == "CID":
                 remapped_user = user_remap_fct(user2id[user])
-            elif args.user_representation == "graph":
+            elif args.user_representation == "GID":
                 remapped_user = user_remap_fct(user)
         else:
             remapped_user = user

@@ -2,7 +2,7 @@ from typing import Dict, List
 
 from transformers import T5Tokenizer, T5ForConditionalGeneration
 import torch
-from utils import prefix_allowed_tokens_fn
+from utils.utils import prefix_allowed_tokens_fn
 
 class Trie(object):
     def __init__(self, sequences: List[List[int]] = []):
