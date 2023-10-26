@@ -5,17 +5,17 @@
 ``pip install -r requirements.txt``
 
 ## Usage 
-Here we use the Toys dataset as an example. 
+Here we use the Toys dataset as an example.\\
 Spectral Collaborative Indexing (CoUI)  
 ``
-CUDA_VISIBLE_DEVICES=0 python \  
-   main.py \  
-    --task toys \  
-    --seed 2022 \  
-    --warmup_prop 0.05 \  
-    --lr 1e-3 \  
-    --clip 1.0 \  
-    --model_type 't5-small' \  
+CUDA_VISIBLE_DEVICES=0 python \ \\
+   main.py \
+    --task toys \
+    --seed 2022 \
+    --warmup_prop 0.05 \
+    --lr 1e-3 \
+    --clip 1.0 \
+    --model_type 't5-small' \
     --epochs 8 \  
     --gpu '0' \  
     --data_dir data \  
