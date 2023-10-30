@@ -1,5 +1,7 @@
 # LightLM: A Lightweight Deep and Narrow Language Model for Generative Recommendation
 
+[Paper Link](https://arxiv.org/abs/2310.17488)
+
 ## Environment
 ```
 conda create -n LightLM python=3.9
@@ -73,4 +75,14 @@ CUDA_VISIBLE_DEVICES=0 python \
     --co_indexing \
     --user_quantized_len 4 \
     --item_quantized_len 4
+```
+## Citation
+If you find our work useful, please consider citing our paper:
+```
+@article{mei2023lightlm,
+  title={LightLM: A Lightweight Deep and Narrow Language Model for Generative Recommendation},
+  author={Kai Mei and Yongfeng Zhang},
+  journal={arXiv:2310.17488},
+  year={2023}
+}
 ```
